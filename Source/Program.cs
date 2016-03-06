@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Barbeiro_Dorminhoco
+namespace Sleepyhead
 {
     static class Program
     {
@@ -16,7 +13,7 @@ namespace Barbeiro_Dorminhoco
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormPrincipal());
+            Application.Run(new MainForm());
         }
     }
 }

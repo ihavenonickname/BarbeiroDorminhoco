@@ -9,15 +9,24 @@ namespace Sleepyhead
     {
         private const int MAX_GUYS = 5;
 
-        public delegate void SpawnedHandler(int queueLength, bool entered, double secsToNext);
-        public event SpawnedHandler Spawned;
-
-        public delegate void GuyGotAttendedHandler(int queueLength);
-        public event GuyGotAttendedHandler GuyGotAttended;
+        public event EventHandler<SpawnEventArgs> Spawned;
+        public event EventHandler<AttendEventArgs> Attend;
 
         private Queue<Guy> queue = new Queue<Guy>();
         private Timer timer;
         private Barber barber;
+
+        public class SpawnEventArgs : EventArgs
+        {
+            public int QueueLength;
+            public bool Entered;
+            public int SecondsToNextSpawn;
+        }
+
+        public class AttendEventArgs : EventArgs
+        {
+            public int QueueLength;
+        }
 
         public Barber Barber
         {
@@ -30,21 +39,27 @@ namespace Sleepyhead
         public BarberShop()
         {
             barber = new Barber(this);
-            barber.AttendStarted += () => GuyGotAttended?.Invoke(queue.Count);
+
+            barber.AttendStarted += (sender, e) =>
+            {
+                AttendEventArgs args = new AttendEventArgs
+                {
+                    QueueLength = queue.Count
+                };
+
+                Attend?.Invoke(this, args);
+            };
         }
 
-        public void Start()
+        public void Open()
         {
             timer = TimerHelper.Create(spawnGuys, 1);
         }
 
-        public void Stop()
+        public void Close()
         {
-            if (!barber.Sleeping)
-                barber.Stop();
-
-            if (timer != null)
-                TimerHelper.Destroy(ref timer);
+            barber.Stop();
+            TimerHelper.Destroy(ref timer);
         }
 
         public Guy GetNextGuy()
@@ -56,16 +71,22 @@ namespace Sleepyhead
         {
             int msToNext = new Random().Next(500, 12000);
 
-            if (queue.Count < MAX_GUYS)
+            SpawnEventArgs args = new SpawnEventArgs
+            {
+                QueueLength = queue.Count,
+                Entered = queue.Count < MAX_GUYS,
+                SecondsToNextSpawn = msToNext / 1000
+            };
+
+            if (args.Entered)
             {
                 queue.Enqueue(new Guy());
-                Spawned?.Invoke(queue.Count, true, msToNext / 1000);
 
                 if (barber.Sleeping)
                     barber.Attend(queue.Dequeue());
             }
-            else
-                Spawned?.Invoke(queue.Count, false, msToNext / 1000);
+
+            Spawned?.Invoke(this, args);
 
             timer.Change(msToNext, Timeout.Infinite);
         }

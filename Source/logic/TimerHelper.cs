@@ -12,7 +12,8 @@ namespace Sleepyhead
 
         public static void Destroy(ref Timer timer)
         {
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
+            if (timer != null)
+                timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
     }
 }

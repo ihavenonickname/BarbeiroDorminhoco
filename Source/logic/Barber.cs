@@ -1,22 +1,23 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace Sleepyhead
 {
     public class Barber
     {
-        public delegate void AttendStartedHandler();
-        public event AttendStartedHandler AttendStarted;
-
-        public delegate void AttendFinihhedHandler();
-        public event AttendFinihhedHandler AttendFinished;
-
-        public delegate void CuttedHandler(int hair);
-        public event CuttedHandler Cutted;
+        public event EventHandler<HairCuttedEventArgs> HairCutted;
+        public event EventHandler AttendStarted;
+        public event EventHandler AttendFinished;
 
         private Timer timer;
         private BarberShop barberShop;
 
         public bool Sleeping = true;
+
+        public class HairCuttedEventArgs : EventArgs
+        {
+            public int Hair;
+        }
 
         public Barber(BarberShop barberShop)
         {
@@ -26,7 +27,7 @@ namespace Sleepyhead
         public void Attend(Guy guy)
         {
             Sleeping = false;
-            AttendStarted();
+            AttendStarted(this, new EventArgs());
             timer = TimerHelper.Create(() => cutHair(guy), 20);
         }
 
@@ -38,12 +39,18 @@ namespace Sleepyhead
         private void cutHair(Guy guy)
         {
             guy.Hair -= 1;
-            Cutted?.Invoke(guy.Hair);
+
+            HairCuttedEventArgs args = new HairCuttedEventArgs
+            {
+                Hair = guy.Hair
+            };
+
+            HairCutted?.Invoke(this, args);
             
             if (guy.Hair <= 0)
             {
                 Stop();
-                AttendFinished();
+                AttendFinished(this, new EventArgs());
                 tryNextGuy();
             }
         }

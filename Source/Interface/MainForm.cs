@@ -11,38 +11,38 @@ namespace Sleepyhead
         {
             InitializeComponent();
 
-            barberShop.Spawned += (queueLength, entered, secsToNext) =>
+            barberShop.Spawned += (sender, e) =>
             {
                 InvokeAction(() =>
                 {
-                    lbQueue.Text = now() + queueLength + " in queue.";
-                    lbLastSpawn.Text = now() + "A guy entered" + (entered ? "." : "and left out.");
-                    lbTime.Text = secsToNext + "s to next guy.";
+                    lbQueue.Text = now() + e.QueueLength + " in queue.";
+                    lbLastSpawn.Text = now() + "A guy entered" + (e.Entered ? "." : "and left out.");
+                    lbTime.Text = now() +  e.SecondsToNextSpawn + "s to next guy.";
                 });
             };
 
-            barberShop.GuyGotAttended += (queueLength) =>
+            barberShop.Attend += (sender, e) =>
             {
                 InvokeAction(() =>
                 {
-                    lbQueue.Text = now() + queueLength + " in queue.";
+                    lbQueue.Text = now() + e.QueueLength + " in queue.";
                     lbStatus.Text = "Not sleeping";
                 });
             };
 
-            barberShop.Barber.Cutted += (hair) =>
+            barberShop.Barber.HairCutted += (sender, e) =>
             {
-                InvokeAction(() => lbHair.Text = hair + " cuts to finish.");
+                InvokeAction(() => lbHair.Text = e.Hair + " cuts to finish.");
             };
 
-            barberShop.Barber.AttendFinished += () =>
+            barberShop.Barber.AttendFinished += (sender, e) =>
             {
                 InvokeAction(() => lbStatus.Text = "Sleeping");
             };
 
-            FormClosing += (sender, e) => barberShop.Stop();
+            FormClosing += (sender, e) => barberShop.Close();
 
-            barberShop.Start();
+            barberShop.Open();
         }
 
         private void InvokeAction(Action a)

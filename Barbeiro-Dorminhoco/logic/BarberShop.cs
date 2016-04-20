@@ -70,21 +70,22 @@ namespace Sleepyhead
         private void spawnGuys()
         {
             int msToNext = new Random().Next(500, 12000);
+            bool entered = queue.Count < MAX_GUYS;
 
-            SpawnEventArgs args = new SpawnEventArgs
-            {
-                QueueLength = queue.Count,
-                Entered = queue.Count < MAX_GUYS,
-                SecondsToNextSpawn = msToNext / 1000
-            };
-
-            if (args.Entered)
+            if (entered)
             {
                 queue.Enqueue(new Guy());
 
                 if (barber.Sleeping)
                     barber.Attend(queue.Dequeue());
             }
+
+            SpawnEventArgs args = new SpawnEventArgs
+            {
+                QueueLength = queue.Count,
+                Entered = entered,
+                SecondsToNextSpawn = msToNext / 1000
+            };
 
             Spawned?.Invoke(this, args);
 
